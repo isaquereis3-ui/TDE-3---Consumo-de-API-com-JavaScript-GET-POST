@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Consumo de API - Exemplo</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 30px;
+            background: #f5f5f5;
+        }
+
+        h1, h2 {
+            color: #333;
+        }
+
+        #posts-container {
+            margin-top: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+        }
+
+        .card {
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        #post-form {
+            margin-top: 40px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        input, textarea, button {
+            display: block;
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #bbb;
+        }
+
+        button {
+            background: #333;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #000;
+        }
+
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Consumo de API Pública com JavaScript</h1>
+
+    <h2>📌 Lista de Posts (GET)</h2>
+    <button onclick="loadPosts()">Carregar Posts</button>
+    <p id="get-error" class="error"></p>
+
+    <div id="posts-container"></div>
+
+    <h2>📌 Criar Novo Post (POST)</h2>
+    <form id="post-form" onsubmit="createPost(event)">
+        <input id="title" type="text" placeholder="Título" required />
+        <textarea id="body" placeholder="Conteúdo" required></textarea>
+        <button type="submit">Enviar Post</button>
+    </form>
+    <p id="post-response"></p>
+
+<script>
+    const API_URL = "https://jsonplaceholder.typicode.com/posts";
+
+    // ================= GET ===================
+    async function loadPosts() {
+        const container = document.getElementById("posts-container");
+        const errorMsg = document.getElementById("get-error");
+
+        container.innerHTML = "";
+        errorMsg.textContent = "";
+
+        try {
+            const response = await fetch(API_URL);
+
+            if (!response.ok) {
+                throw new Error("Erro ao buscar posts. Código: " + response.status);
+            }
+
+            const posts = await response.json();
+
+            posts.slice(0, 10).forEach(post => {
+                const card = document.createElement("div");
+                card.className = "card";
+                card.innerHTML = `
+                    <h3>${post.title}</h3>
+                    <p>${post.body}</p>
+                    <small>ID: ${post.id}</small>
+                `;
+                container.appendChild(card);
+            });
+
+        } catch (error) {
+            errorMsg.textContent = "Falha na requisição: " + error.message;
+        }
+    }
+
+    // ================= POST ===================
+    async function createPost(event) {
+        event.preventDefault();
+
+        const title = document.getElementById("title").value;
+        const body = document.getElementById("body").value;
+        const responseMsg = document.getElementById("post-response");
+
+        responseMsg.textContent = "";
+
+        try {
+            const response = await fetch(API_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ title, body, userId: 1 })
+            });
+
+            if (!response.ok) {
+                throw new Error("Erro ao enviar post. Código: " + response.status);
+            }
+
+            const newPost = await response.json();
+
+            responseMsg.textContent = "Post criado com sucesso! ID gerado: " + newPost.id;
+
+        } catch (error) {
+            responseMsg.textContent = "Falha ao enviar post: " + error.message;
+        }
+    }
+</script>
+
+</body>
+</html>
